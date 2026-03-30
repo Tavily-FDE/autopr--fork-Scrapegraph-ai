@@ -57,14 +57,13 @@ class SearchConfig(BaseModel):
         None, description="Proxy configuration"
     )
     serper_api_key: Optional[str] = Field(None, description="API key for Serper")
-    tavily_api_key: Optional[str] = Field(None, description="API key for Tavily")
     region: Optional[str] = Field(None, description="Country/region code")
     language: str = Field("en", description="Language code")
 
     @validator("search_engine")
     def validate_search_engine(cls, v):
         """Validate search engine."""
-        valid_engines = {"duckduckgo", "bing", "searxng", "serper", "tavily"}
+        valid_engines = {"duckduckgo", "bing", "searxng", "serper"}
         if v.lower() not in valid_engines:
             raise ValueError(
                 f"Search engine must be one of: {', '.join(valid_engines)}"
@@ -167,7 +166,6 @@ def search_on_web(
     timeout: int = 10,
     proxy: Optional[Union[str, Dict, ProxyConfig]] = None,
     serper_api_key: Optional[str] = None,
-    tavily_api_key: Optional[str] = None,
     region: Optional[str] = None,
     language: str = "en",
 ) -> List[str]:
@@ -182,7 +180,6 @@ def search_on_web(
         timeout (int): Request timeout in seconds
         proxy (str | dict | ProxyConfig): Proxy configuration
         serper_api_key (str): API key for Serper
-        tavily_api_key (str): API key for Tavily
         region (str): Country/region code (e.g., 'mx' for Mexico)
         language (str): Language code (e.g., 'es' for Spanish)
 
@@ -207,7 +204,6 @@ def search_on_web(
             timeout=timeout,
             proxy=proxy,
             serper_api_key=serper_api_key,
-            tavily_api_key=tavily_api_key,
             region=region,
             language=language,
         )
@@ -239,11 +235,6 @@ def search_on_web(
         elif config.search_engine == "serper":
             results = _search_serper(
                 config.query, config.max_results, config.serper_api_key, config.timeout
-            )
-
-        elif config.search_engine == "tavily":
-            results = _search_tavily(
-                config.query, config.max_results, config.tavily_api_key
             )
 
         return filter_pdf_links(results)
@@ -388,40 +379,6 @@ def _search_serper(
         return results
     except Exception as e:
         raise SearchRequestError(f"Serper search failed: {str(e)}")
-
-
-def _search_tavily(
-    query: str, max_results: int, api_key: Optional[str] = None
-) -> List[str]:
-    """
-    Helper function for Tavily search.
-
-    Args:
-        query (str): Search query
-        max_results (int): Maximum number of results to return
-        api_key (str): API key for Tavily
-
-    Returns:
-        List[str]: List of URLs from search results
-    """
-    try:
-        from tavily import TavilyClient
-    except ImportError:
-        raise SearchConfigError(
-            "tavily-python package is required for Tavily search. "
-            "Install it with: pip install tavily-python"
-        )
-
-    if not api_key:
-        raise SearchConfigError("Tavily API key is required")
-
-    try:
-        client = TavilyClient(api_key=api_key)
-        response = client.search(query=query, max_results=max_results)
-        results = [result["url"] for result in response.get("results", [])]
-        return results
-    except Exception as e:
-        raise SearchRequestError(f"Tavily search failed: {str(e)}")
 
 
 def format_proxy(proxy_config: Union[str, Dict, ProxyConfig]) -> str:
