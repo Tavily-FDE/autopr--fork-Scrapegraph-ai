@@ -67,6 +67,7 @@ class OmniSearchGraph(AbstractGraph):
                 "llm_model": self.llm_model,
                 "max_results": self.max_results,
                 "search_engine": self.copy_config.get("search_engine"),
+                "tavily_api_key": self.copy_config.get("tavily_api_key"),
             },
         )
         graph_iterator_node = GraphIteratorNode(
