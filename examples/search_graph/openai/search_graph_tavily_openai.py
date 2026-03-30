@@ -1,5 +1,9 @@
 """
-Example of Search Graph using Tavily as the search engine
+Example of Search Graph using Tavily as the search engine.
+
+Requires the TAVILY_API_KEY environment variable to be set (e.g. in a .env
+file).  Authentication is handled automatically by TavilyClient via this
+env var; there is no separate config key for the Tavily API key.
 """
 
 import os
@@ -15,7 +19,6 @@ load_dotenv()
 # ************************************************
 
 openai_key = os.getenv("OPENAI_API_KEY")
-tavily_key = os.getenv("TAVILY_API_KEY")
 
 graph_config = {
     "llm": {
@@ -23,7 +26,6 @@ graph_config = {
         "model": "openai/gpt-4o",
     },
     "search_engine": "tavily",
-    "tavily_api_key": tavily_key,
     "max_results": 2,
     "verbose": True,
 }
